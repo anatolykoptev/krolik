@@ -75,7 +75,7 @@ class MCPClient:
                         self._tools = data.get("tools", data.get("result", []))
                         logger.info(f"Discovered {len(self._tools)} tools from {self.name}")
                         return
-                except:
+                except Exception:
                     continue
             
             # If no discovery endpoint, assume standard MCP tools

@@ -131,7 +131,7 @@ Example: cli_proxy(agent_type="mcp-server", command="npx", args=["-y", "@modelco
                 "type": agent_type,
                 "process": process,
                 "status": "running",
-                "created_at": asyncio.get_event_loop().time()
+                "created_at": asyncio.get_running_loop().time()
             }
             
             logger.info(f"Spawned agent {agent_id} with PID {process.pid}")
@@ -343,7 +343,7 @@ Example: agent_connect(url="http://localhost:3000/agent", method="POST", payload
                 try:
                     data = response.json()
                     output = json.dumps(data, indent=2, ensure_ascii=False)
-                except:
+                except (json.JSONDecodeError, ValueError):
                     output = response.text
                 
                 return ToolResult(

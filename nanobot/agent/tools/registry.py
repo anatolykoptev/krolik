@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from nanobot.agent.tools.base import Tool
+from nanobot.agent.tools.base import Tool, ToolResult
 
 
 class ToolRegistry:
@@ -57,7 +57,14 @@ class ToolRegistry:
             errors = tool.validate_params(params)
             if errors:
                 return f"Error: Invalid parameters for tool '{name}': " + "; ".join(errors)
-            return await tool.execute(**params)
+            result = await tool.execute(**params)
+            # Handle ToolResult objects (krolik tools return these)
+            if isinstance(result, ToolResult):
+                if result.success:
+                    return result.output or "Done"
+                else:
+                    return f"Error: {result.error or 'Unknown error'}"
+            return result
         except Exception as e:
             return f"Error executing {name}: {str(e)}"
     

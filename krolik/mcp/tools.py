@@ -208,11 +208,13 @@ def register_mcp_tools(
     # Optionally register individual tools
     if register_individual:
         for tool_schema in mcp_manager.get_all_tools():
-            tool_name = tool_schema.get("name", "").replace(f"{tool_schema.get('server', '')}.", "")
-            server = tool_schema.get("original_server", "")
+            full_name = tool_schema.get("name", "")
+            original_name = tool_schema.get("original_name", "")
             
-            if server and tool_name:
-                tool = MCPTool(server, tool_name, tool_schema, mcp_manager)
+            # Parse server from prefixed name "server.tool_name"
+            if "." in full_name and original_name:
+                server = full_name.split(".", 1)[0]
+                tool = MCPTool(server, original_name, tool_schema, mcp_manager)
                 tool_registry.register(tool)
     
     logger.info("MCP tools registered")

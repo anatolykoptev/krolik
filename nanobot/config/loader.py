@@ -94,10 +94,40 @@ def load_env_file(env_path: Path | None = None) -> dict[str, str]:
     return env_vars
 
 
+def _flatten_dict_to_env(data: dict, prefix: str = "NANOBOT_") -> dict[str, str]:
+    """
+    Flatten nested dict to NANOBOT__-style env vars.
+    
+    E.g. {"providers": {"openrouter": {"api_key": "X"}}}
+    -> {"NANOBOT_PROVIDERS__OPENROUTER__API_KEY": "X"}
+    """
+    result = {}
+    
+    def _flatten(obj: Any, path: str):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                _flatten(v, f"{path}{k.upper()}__" if path else f"{prefix}{k.upper()}__")
+        elif isinstance(obj, list):
+            # Skip lists for env var flattening
+            pass
+        elif obj is not None and str(obj):
+            # Remove trailing __
+            env_key = path.rstrip("_")
+            result[env_key] = str(obj)
+    
+    _flatten(data, "")
+    return result
+
+
 def load_config(config_path: Path | None = None, env_path: Path | None = None) -> Config:
     """
-    Load configuration from file or create default.
-    Also loads .env file if found.
+    Load configuration from .env file and/or config.json.
+    
+    Priority (highest first):
+    1. Real environment variables (set by shell)
+    2. .env file variables
+    3. config.json values (set as env defaults)
+    4. Pydantic defaults
     
     Args:
         config_path: Optional path to config file. Uses default if not provided.
@@ -106,24 +136,26 @@ def load_config(config_path: Path | None = None, env_path: Path | None = None) -
     Returns:
         Loaded configuration object.
     """
-    # Load .env file first (sets environment variables)
-    loaded_env = load_env_file(env_path)
-    if loaded_env:
-        print(f"Loaded {len(loaded_env)} variables from .env")
-    
-    # Now load config (pydantic-settings will read from environment)
+    # Step 1: Load config.json as lowest-priority defaults
     path = config_path or get_config_path()
-    
     if path.exists():
         try:
             with open(path) as f:
                 data = json.load(f)
-            return Config.model_validate(convert_keys(data))
+            # Flatten JSON to env vars (only set if not already present)
+            flat = _flatten_dict_to_env(convert_keys(data))
+            for key, value in flat.items():
+                if key not in os.environ and value:
+                    os.environ[key] = value
         except (json.JSONDecodeError, ValueError) as e:
             print(f"Warning: Failed to load config from {path}: {e}")
-            print("Using default configuration.")
     
-    # Return default config (will read from environment variables)
+    # Step 2: Load .env file (higher priority than config.json)
+    loaded_env = load_env_file(env_path)
+    if loaded_env:
+        print(f"Loaded {len(loaded_env)} variables from .env")
+    
+    # Step 3: Create Config via pydantic-settings (reads env vars automatically)
     return Config()
 
 

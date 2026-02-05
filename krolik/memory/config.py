@@ -69,6 +69,9 @@ class ProactiveSuggestionsConfig(BaseModel):
 class MemoryConfig(BaseModel):
     """Complete memory configuration."""
     
+    # Enable/disable
+    enabled: bool = True
+    
     # memU connection
     memu_url: str = "http://localhost:8000"
     memu_api_key: Optional[str] = None
@@ -79,7 +82,11 @@ class MemoryConfig(BaseModel):
     # Auto-memorization
     auto_memorize: bool = True
     
-    # Sub-configs
+    # Feature toggles (top-level bools to avoid env var conflicts)
+    intent_aware_enabled: bool = True
+    proactive_enabled: bool = True
+    
+    # Sub-configs (use suffixed names to avoid env var collision)
     categories: MemoryCategoriesConfig = Field(default_factory=MemoryCategoriesConfig)
-    intent_aware: IntentAwareConfig = Field(default_factory=IntentAwareConfig)
-    proactive: ProactiveSuggestionsConfig = Field(default_factory=ProactiveSuggestionsConfig)
+    intent_aware_config: IntentAwareConfig = Field(default_factory=IntentAwareConfig)
+    proactive_config: ProactiveSuggestionsConfig = Field(default_factory=ProactiveSuggestionsConfig)

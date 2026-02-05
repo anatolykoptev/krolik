@@ -25,7 +25,7 @@ class ProactiveMemorySuggestions:
     async def check_for_suggestions(
         self, 
         user_message: str,
-        categories: list[str] = None
+        categories: Optional[list[str]] = None
     ) -> Optional[str]:
         """
         Check if there's a relevant proactive suggestion.
