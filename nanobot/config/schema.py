@@ -4,6 +4,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
+from krolik.memory.config import MemoryConfig
+
 
 class WhatsAppConfig(BaseModel):
     """WhatsApp channel configuration."""
@@ -105,6 +107,7 @@ class Config(BaseSettings):
     providers: ProvidersConfig = Field(default_factory=ProvidersConfig)
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
+    memory: MemoryConfig = Field(default_factory=MemoryConfig)
     
     @property
     def workspace_path(self) -> Path:
