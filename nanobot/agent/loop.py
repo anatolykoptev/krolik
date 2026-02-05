@@ -26,6 +26,9 @@ from krolik.mcp.client import MCPManager, create_mcp_manager
 from krolik.mcp.tools import register_mcp_tools
 from krolik.tools.workflow import CreateWorkflowTool, ListWorkflowsTool, RunWorkflowTool
 from krolik.tools.cli_proxy import CLIProxyTool, AgentConnectTool
+from krolik.llm.gateway import create_gateway_from_env
+from krolik.llm.router import ModelRouter
+from krolik.llm.tool import LLMCallTool, CodingAgentTool, ListModelsToolTool
 
 
 class AgentLoop:
@@ -123,6 +126,15 @@ class AgentLoop:
         # CLI Proxy tools
         self.tools.register(CLIProxyTool(self.workspace))
         self.tools.register(AgentConnectTool())
+        
+        # LLM Gateway tools (multi-model routing)
+        self.llm_gateway = create_gateway_from_env()
+        self.model_router = ModelRouter(
+            available_providers=set(self.llm_gateway.list_providers()) or None,
+        )
+        self.tools.register(LLMCallTool(self.llm_gateway, self.model_router))
+        self.tools.register(CodingAgentTool(self.llm_gateway, self.model_router))
+        self.tools.register(ListModelsToolTool(self.llm_gateway))
     
     async def run(self) -> None:
         """Run the agent loop, processing messages from the bus."""
