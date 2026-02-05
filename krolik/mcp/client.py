@@ -202,12 +202,16 @@ class MCPManager:
             
             if server_name in self._clients:
                 client = self._clients[server_name]
+                if not client.is_available():
+                    return {"error": f"MCP server '{server_name}' is not connected"}
                 return await client.call_tool(actual_tool, arguments)
         
         # Try to find in tool mapping
         if tool_name in self._tool_to_client:
             client_name = self._tool_to_client[tool_name]
             client = self._clients[client_name]
+            if not client.is_available():
+                return {"error": f"MCP server '{client_name}' is not connected"}
             return await client.call_tool(tool_name, arguments)
         
         return {"error": f"Tool '{tool_name}' not found in any MCP server"}
