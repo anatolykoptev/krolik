@@ -154,8 +154,7 @@ async def test_agent_loop_process_message_with_memory(temp_workspace, mock_bus, 
                 channel="telegram",
                 sender_id="user123",
                 chat_id="456",
-                content="What did we discuss?",
-                session_key="telegram:456"
+                content="What did we discuss?"
             )
             
             response = await loop._process_message(msg)
@@ -182,8 +181,7 @@ async def test_agent_loop_proactive_suggestion(temp_workspace, mock_bus, mock_pr
             channel="telegram",
             sender_id="user123",
             chat_id="456",
-            content="I'm working on...",
-            session_key="telegram:456"
+            content="I'm working on..."
         )
         
         await loop._process_message(msg)

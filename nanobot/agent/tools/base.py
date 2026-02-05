@@ -1,7 +1,16 @@
 """Base class for agent tools."""
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any
+
+
+@dataclass
+class ToolResult:
+    """Result of tool execution."""
+    success: bool
+    output: str = ""
+    error: str | None = None
 
 
 class Tool(ABC):

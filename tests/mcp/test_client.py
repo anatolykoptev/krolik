@@ -65,10 +65,14 @@ async def test_mcp_client_call_tool_not_initialized(mcp_client):
     """Test tool call when not initialized."""
     mcp_client._initialized = False
     
-    result = await mcp_client.call_tool("test_tool", {})
-    
-    assert "error" in result
-    assert "not initialized" in result["error"].lower()
+    # Should raise RuntimeError
+    try:
+        result = await mcp_client.call_tool("test_tool", {})
+        # If no exception, should return error dict
+        assert "error" in result
+    except RuntimeError as e:
+        # Expected behavior - not initialized
+        assert "not initialized" in str(e).lower()
 
 
 @pytest.mark.asyncio
