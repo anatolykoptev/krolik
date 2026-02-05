@@ -19,6 +19,7 @@ from nanobot.agent.tools.message import MessageTool
 from nanobot.agent.tools.spawn import SpawnTool
 from nanobot.agent.subagent import SubagentManager
 from nanobot.session.manager import SessionManager
+from krolik.memory.tools import RememberTool, RecallTool, SearchMemoryTool
 
 
 class AgentLoop:
@@ -93,6 +94,11 @@ class AgentLoop:
         # Spawn tool (for subagents)
         spawn_tool = SpawnTool(manager=self.subagents)
         self.tools.register(spawn_tool)
+        
+        # Memory tools
+        self.tools.register(RememberTool(self.context.memory))
+        self.tools.register(RecallTool(self.context.memory))
+        self.tools.register(SearchMemoryTool(self.context.memory))
     
     async def run(self) -> None:
         """Run the agent loop, processing messages from the bus."""
@@ -217,6 +223,9 @@ class AgentLoop:
         session.add_message("assistant", final_content)
         self.sessions.save(session)
         
+        # Auto-memorize conversation (background, non-blocking)
+        asyncio.create_task(self._memorize_conversation(msg.content, final_content))
+        
         return OutboundMessage(
             channel=msg.channel,
             chat_id=msg.chat_id,
@@ -335,3 +344,27 @@ class AgentLoop:
         
         response = await self._process_message(msg)
         return response.content if response else ""
+    
+    async def _memorize_conversation(self, user_msg: str, assistant_msg: str) -> None:
+        """Background task to memorize conversation.
+        
+        This runs asynchronously and doesn't block the response.
+        """
+        try:
+            messages = [
+                {"role": "user", "content": user_msg},
+                {"role": "assistant", "content": assistant_msg}
+            ]
+            
+            await self.context.memory.memorize(
+                messages=messages,
+                category="conversation",
+                metadata={"auto": True}
+            )
+            
+            logger.debug("Conversation auto-memorized")
+            
+        except Exception as e:
+            # Don't fail the conversation if memorization fails
+            logger.debug(f"Auto-memorization failed (non-critical): {e}")
+

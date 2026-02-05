@@ -5,7 +5,7 @@ import mimetypes
 from pathlib import Path
 from typing import Any
 
-from nanobot.agent.memory import MemoryStore
+from krolik.memory.store import EnhancedMemoryStore
 from nanobot.agent.skills import SkillsLoader
 
 
@@ -21,7 +21,7 @@ class ContextBuilder:
     
     def __init__(self, workspace: Path):
         self.workspace = workspace
-        self.memory = MemoryStore(workspace)
+        self.memory = EnhancedMemoryStore(workspace)
         self.skills = SkillsLoader(workspace)
     
     def build_system_prompt(self, skill_names: list[str] | None = None) -> str:
