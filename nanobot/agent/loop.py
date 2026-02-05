@@ -20,6 +20,8 @@ from nanobot.agent.tools.spawn import SpawnTool
 from nanobot.agent.subagent import SubagentManager
 from nanobot.session.manager import SessionManager
 from krolik.memory.tools import RememberTool, RecallTool, SearchMemoryTool
+from krolik.memory.intent_aware import IntentAwareRetriever
+from krolik.memory.proactive import ProactiveMemorySuggestions
 
 
 class AgentLoop:
@@ -56,6 +58,11 @@ class AgentLoop:
         self.context = ContextBuilder(workspace)
         self.sessions = SessionManager(workspace)
         self.tools = ToolRegistry()
+        
+        # Phase 3: Intent-aware retrieval and proactive suggestions
+        self.intent_retriever = IntentAwareRetriever(self.context.memory)
+        self.proactive_suggestions = ProactiveMemorySuggestions(self.context.memory)
+        
         self.subagents = SubagentManager(
             provider=provider,
             workspace=workspace,
@@ -169,6 +176,22 @@ class AgentLoop:
             current_message=msg.content,
             media=msg.media if msg.media else None,
         )
+        
+        # Phase 3: Intent-aware retrieval - inject relevant memories into context
+        relevant_memories = await self.intent_retriever.retrieve_if_needed(msg.content)
+        if relevant_memories:
+            memory_context = self.intent_retriever.format_for_context(relevant_memories)
+            # Prepend memory context to system message
+            if messages and messages[0]["role"] == "system":
+                messages[0]["content"] = f"{messages[0]['content']}\n\n{memory_context}"
+        
+        # Phase 3: Check for proactive suggestions
+        suggestion = await self.proactive_suggestions.check_for_suggestions(msg.content)
+        if suggestion:
+            logger.info(f"Proactive suggestion: {suggestion}")
+            # Add suggestion to context as a gentle hint
+            if messages and messages[0]["role"] == "system":
+                messages[0]["content"] += f"\n\n💡 Hint: {suggestion}"
         
         # Agent loop
         iteration = 0
