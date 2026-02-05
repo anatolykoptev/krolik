@@ -24,6 +24,8 @@ from krolik.memory.intent_aware import IntentAwareRetriever
 from krolik.memory.proactive import ProactiveMemorySuggestions
 from krolik.mcp.client import MCPManager, create_mcp_manager
 from krolik.mcp.tools import register_mcp_tools
+from krolik.tools.workflow import CreateWorkflowTool, ListWorkflowsTool, RunWorkflowTool
+from krolik.tools.cli_proxy import CLIProxyTool, AgentConnectTool
 
 
 class AgentLoop:
@@ -112,6 +114,15 @@ class AgentLoop:
         self.tools.register(RememberTool(self.context.memory))
         self.tools.register(RecallTool(self.context.memory))
         self.tools.register(SearchMemoryTool(self.context.memory))
+        
+        # Workflow tools
+        self.tools.register(CreateWorkflowTool(self.workspace))
+        self.tools.register(ListWorkflowsTool(self.workspace))
+        self.tools.register(RunWorkflowTool(self.workspace))
+        
+        # CLI Proxy tools
+        self.tools.register(CLIProxyTool(self.workspace))
+        self.tools.register(AgentConnectTool())
     
     async def run(self) -> None:
         """Run the agent loop, processing messages from the bus."""
