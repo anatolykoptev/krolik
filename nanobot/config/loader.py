@@ -1,6 +1,7 @@
 """Configuration loading utilities."""
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -18,16 +19,99 @@ def get_data_dir() -> Path:
     return get_data_path()
 
 
-def load_config(config_path: Path | None = None) -> Config:
+def find_env_file() -> Path | None:
+    """
+    Find .env file in priority order:
+    1. Current working directory
+    2. Project root (where pyproject.toml exists)
+    3. User home directory (~/.krolik/.env)
+    4. User home directory (~/.nanobot/.env)
+    
+    Returns:
+        Path to .env file or None if not found.
+    """
+    # Check current directory
+    cwd_env = Path.cwd() / ".env"
+    if cwd_env.exists():
+        return cwd_env
+    
+    # Check project root (look for pyproject.toml)
+    current = Path.cwd()
+    for parent in [current] + list(current.parents):
+        if (parent / "pyproject.toml").exists():
+            project_env = parent / ".env"
+            if project_env.exists():
+                return project_env
+            break
+    
+    # Check user config directories
+    home_env = Path.home() / ".krolik" / ".env"
+    if home_env.exists():
+        return home_env
+    
+    legacy_env = Path.home() / ".nanobot" / ".env"
+    if legacy_env.exists():
+        return legacy_env
+    
+    return None
+
+
+def load_env_file(env_path: Path | None = None) -> dict[str, str]:
+    """
+    Load environment variables from .env file.
+    
+    Args:
+        env_path: Optional path to .env file. Will auto-find if not provided.
+    
+    Returns:
+        Dictionary of loaded environment variables.
+    """
+    path = env_path or find_env_file()
+    
+    if not path or not path.exists():
+        return {}
+    
+    env_vars = {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                # Skip empty lines and comments
+                if not line or line.startswith("#"):
+                    continue
+                # Parse KEY=value
+                if "=" in line:
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip("'\"")  # Remove quotes
+                    # Only set if not already in environment
+                    if key not in os.environ:
+                        os.environ[key] = value
+                        env_vars[key] = value
+    except Exception as e:
+        print(f"Warning: Failed to load .env from {path}: {e}")
+    
+    return env_vars
+
+
+def load_config(config_path: Path | None = None, env_path: Path | None = None) -> Config:
     """
     Load configuration from file or create default.
+    Also loads .env file if found.
     
     Args:
         config_path: Optional path to config file. Uses default if not provided.
+        env_path: Optional path to .env file. Auto-finds if not provided.
     
     Returns:
         Loaded configuration object.
     """
+    # Load .env file first (sets environment variables)
+    loaded_env = load_env_file(env_path)
+    if loaded_env:
+        print(f"Loaded {len(loaded_env)} variables from .env")
+    
+    # Now load config (pydantic-settings will read from environment)
     path = config_path or get_config_path()
     
     if path.exists():
@@ -39,6 +123,7 @@ def load_config(config_path: Path | None = None) -> Config:
             print(f"Warning: Failed to load config from {path}: {e}")
             print("Using default configuration.")
     
+    # Return default config (will read from environment variables)
     return Config()
 
 

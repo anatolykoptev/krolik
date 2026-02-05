@@ -58,6 +58,19 @@ def onboard():
     save_config(config)
     console.print(f"[green]✓[/green] Created config at {config_path}")
     
+    # Create .env file if it doesn't exist
+    env_path = Path.home() / ".krolik" / ".env"
+    if not env_path.exists():
+        env_path.parent.mkdir(parents=True, exist_ok=True)
+        env_template = Path(__file__).parent.parent.parent / ".env.example"
+        if env_template.exists():
+            import shutil
+            shutil.copy(env_template, env_path)
+            console.print(f"[green]✓[/green] Created .env template at {env_path}")
+        else:
+            env_path.write_text("# Krolik Environment Configuration\n# Add your API keys here\n")
+            console.print(f"[green]✓[/green] Created empty .env at {env_path}")
+    
     # Create workspace
     workspace = get_workspace_path()
     console.print(f"[green]✓[/green] Created workspace at {workspace}")
@@ -67,10 +80,10 @@ def onboard():
     
     console.print(f"\n{__logo__} nanobot is ready!")
     console.print("\nNext steps:")
-    console.print("  1. Add your API key to [cyan]~/.nanobot/config.json[/cyan]")
-    console.print("     Get one at: https://openrouter.ai/keys")
-    console.print("  2. Chat: [cyan]nanobot agent -m \"Hello!\"[/cyan]")
-    console.print("\n[dim]Want Telegram/WhatsApp? See: https://github.com/HKUDS/nanobot#-chat-apps[/dim]")
+    console.print("  1. Add your API keys to [cyan]~/.krolik/.env[/cyan]")
+    console.print("     Or set env vars: NANOBOT_PROVIDERS__OPENROUTER__API_KEY=your_key")
+    console.print("  2. Chat: [cyan]krolik agent -m \"Hello!\"[/cyan]")
+    console.print("\n[dim]Want Telegram/WhatsApp? See: https://github.com/anatolykoptev/krolik#-chat-apps[/dim]")
 
 
 
@@ -618,6 +631,73 @@ def cron_run(
 # ============================================================================
 # Status Commands
 # ============================================================================
+
+
+@app.command()
+def env(
+    edit: bool = typer.Option(False, "--edit", "-e", help="Open .env file in editor"),
+    show: bool = typer.Option(False, "--show", "-s", help="Show current .env location and loaded vars"),
+):
+    """Manage environment variables and API keys."""
+    from nanobot.config.loader import find_env_file, load_env_file
+    
+    env_path = find_env_file()
+    
+    if show:
+        console.print(f"{__logo__} Environment Status\n")
+        
+        if env_path:
+            console.print(f".env file: [green]{env_path}[/green]")
+            loaded = load_env_file(env_path)
+            console.print(f"Loaded variables: [green]{len(loaded)}[/green]")
+            
+            # Show which API keys are configured
+            api_providers = [
+                ("OpenRouter", "NANOBOT_PROVIDERS__OPENROUTER__API_KEY"),
+                ("Anthropic", "NANOBOT_PROVIDERS__ANTHROPIC__API_KEY"),
+                ("OpenAI", "NANOBOT_PROVIDERS__OPENAI__API_KEY"),
+                ("Gemini", "NANOBOT_PROVIDERS__GEMINI__API_KEY"),
+                ("DeepSeek", "NANOBOT_PROVIDERS__DEEPSEEK__API_KEY"),
+                ("Groq", "NANOBOT_PROVIDERS__GROQ__API_KEY"),
+                ("Zhipu", "NANOBOT_PROVIDERS__ZHIPU__API_KEY"),
+            ]
+            
+            console.print("\nAPI Keys:")
+            for name, key in api_providers:
+                value = loaded.get(key) or __import__('os').environ.get(key, "")
+                status = "[green]✓[/green]" if value else "[dim]not set[/dim]"
+                console.print(f"  {name}: {status}")
+        else:
+            console.print("[yellow]No .env file found[/yellow]")
+            console.print("Run [cyan]krolik onboard[/cyan] to create one, or:")
+            console.print("  1. cp .env.example ~/.krolik/.env")
+            console.print("  2. Edit and add your API keys")
+        
+        raise typer.Exit()
+    
+    if edit:
+        if not env_path:
+            # Create new .env file
+            env_path = Path.home() / ".krolik" / ".env"
+            env_path.parent.mkdir(parents=True, exist_ok=True)
+            env_path.write_text("# Krolik Environment Configuration\n\n")
+            console.print(f"[green]✓[/green] Created {env_path}")
+        
+        # Open in editor
+        editor = __import__('os').environ.get('EDITOR', 'nano')
+        console.print(f"Opening {env_path} in {editor}...")
+        __import__('subprocess').run([editor, str(env_path)])
+        raise typer.Exit()
+    
+    # Default: show help
+    console.print(f"{__logo__} Environment Management\n")
+    console.print("Usage:")
+    console.print("  krolik env --show    Show current env status")
+    console.print("  krolik env --edit    Edit .env file")
+    console.print("\n.env file locations (in order of priority):")
+    console.print("  1. ./.env (current directory)")
+    console.print("  2. ~/.krolik/.env")
+    console.print("  3. ~/.nanobot/.env")
 
 
 @app.command()
