@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
 from krolik.memory.config import MemoryConfig
+from krolik.mcp.config import MCPConfig
 
 
 class WhatsAppConfig(BaseModel):
@@ -108,6 +109,7 @@ class Config(BaseSettings):
     gateway: GatewayConfig = Field(default_factory=GatewayConfig)
     tools: ToolsConfig = Field(default_factory=ToolsConfig)
     memory: MemoryConfig = Field(default_factory=MemoryConfig)
+    mcp: MCPConfig = Field(default_factory=MCPConfig)
     
     @property
     def workspace_path(self) -> Path:

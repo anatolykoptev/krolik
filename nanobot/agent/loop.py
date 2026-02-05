@@ -22,6 +22,8 @@ from nanobot.session.manager import SessionManager
 from krolik.memory.tools import RememberTool, RecallTool, SearchMemoryTool
 from krolik.memory.intent_aware import IntentAwareRetriever
 from krolik.memory.proactive import ProactiveMemorySuggestions
+from krolik.mcp.client import MCPManager, create_mcp_manager
+from krolik.mcp.tools import register_mcp_tools
 
 
 class AgentLoop:
@@ -62,6 +64,10 @@ class AgentLoop:
         # Phase 3: Intent-aware retrieval and proactive suggestions
         self.intent_retriever = IntentAwareRetriever(self.context.memory)
         self.proactive_suggestions = ProactiveMemorySuggestions(self.context.memory)
+        
+        # Phase 5: MCP (Model Context Protocol) integration
+        self.mcp_manager: MCPManager | None = None
+        self._mcp_config: dict[str, str] = {}
         
         self.subagents = SubagentManager(
             provider=provider,
@@ -391,3 +397,39 @@ class AgentLoop:
             # Don't fail the conversation if memorization fails
             logger.debug(f"Auto-memorization failed (non-critical): {e}")
 
+    async def initialize_mcp(self, mcp_servers: dict[str, str] | None = None) -> dict[str, bool]:
+        """Initialize MCP connections.
+        
+        Args:
+            mcp_servers: Dict of {server_name: url}
+            
+        Returns:
+            Dict of {server_name: success}
+        """
+        if mcp_servers:
+            self._mcp_config = mcp_servers
+            self.mcp_manager = await create_mcp_manager(mcp_servers)
+            
+            # Register MCP tools
+            if self.mcp_manager:
+                register_mcp_tools(self.tools, self.mcp_manager)
+                
+            # Get connection results
+            results = {}
+            for name, client in self.mcp_manager._clients.items():
+                results[name] = client.is_available()
+            
+            logger.info(f"MCP initialized: {results}")
+            return results
+        
+        return {}
+    
+    def get_mcp_status(self) -> dict[str, bool]:
+        """Get MCP connection status."""
+        if not self.mcp_manager:
+            return {}
+        
+        return {
+            name: client.is_available() 
+            for name, client in self.mcp_manager._clients.items()
+        }
