@@ -81,7 +81,7 @@ def onboard():
     console.print(f"\n{__logo__} krolik is ready!")
     console.print("\nNext steps:")
     console.print("  1. Add your API keys to [cyan]~/.krolik/.env[/cyan]")
-    console.print("     Or set env vars: NANOBOT_PROVIDERS__OPENROUTER__API_KEY=your_key")
+    console.print("     Or set env vars: KROLIK_PROVIDERS__OPENROUTER__API_KEY=your_key")
     console.print("  2. Chat: [cyan]krolik agent -m \"Hello!\"[/cyan]")
     console.print("\n[dim]Want Telegram/WhatsApp? See: https://github.com/anatolykoptev/krolik#-chat-apps[/dim]")
 
@@ -199,7 +199,7 @@ def gateway(
 
     if not api_key and not is_bedrock:
         console.print("[red]Error: No API key configured.[/red]")
-        console.print("Set one in ~/.krolik/config.json under providers.openrouter.apiKey")
+        console.print("Set KROLIK_PROVIDERS__OPENROUTER__API_KEY in ~/.krolik/.env")
         raise typer.Exit(1)
     
     provider = LiteLLMProvider(
@@ -653,18 +653,20 @@ def env(
             
             # Show which API keys are configured
             api_providers = [
-                ("OpenRouter", "NANOBOT_PROVIDERS__OPENROUTER__API_KEY"),
-                ("Anthropic", "NANOBOT_PROVIDERS__ANTHROPIC__API_KEY"),
-                ("OpenAI", "NANOBOT_PROVIDERS__OPENAI__API_KEY"),
-                ("Gemini", "NANOBOT_PROVIDERS__GEMINI__API_KEY"),
-                ("DeepSeek", "NANOBOT_PROVIDERS__DEEPSEEK__API_KEY"),
-                ("Groq", "NANOBOT_PROVIDERS__GROQ__API_KEY"),
-                ("Zhipu", "NANOBOT_PROVIDERS__ZHIPU__API_KEY"),
+                ("OpenRouter", "KROLIK_PROVIDERS__OPENROUTER__API_KEY"),
+                ("Anthropic", "KROLIK_PROVIDERS__ANTHROPIC__API_KEY"),
+                ("OpenAI", "KROLIK_PROVIDERS__OPENAI__API_KEY"),
+                ("Gemini", "KROLIK_PROVIDERS__GEMINI__API_KEY"),
+                ("DeepSeek", "KROLIK_PROVIDERS__DEEPSEEK__API_KEY"),
+                ("Groq", "KROLIK_PROVIDERS__GROQ__API_KEY"),
+                ("Zhipu", "KROLIK_PROVIDERS__ZHIPU__API_KEY"),
             ]
             
             console.print("\nAPI Keys:")
             for name, key in api_providers:
-                value = loaded.get(key) or __import__('os').environ.get(key, "")
+                # Check both KROLIK_ and legacy NANOBOT_ prefix
+                legacy_key = key.replace("KROLIK_", "NANOBOT_", 1)
+                value = loaded.get(key) or loaded.get(legacy_key) or __import__('os').environ.get(key, "") or __import__('os').environ.get(legacy_key, "")
                 status = "[green]✓[/green]" if value else "[dim]not set[/dim]"
                 console.print(f"  {name}: {status}")
         else:

@@ -1,6 +1,6 @@
-# nanobot Skills
+# Krolik Skills
 
-This directory contains built-in skills that extend nanobot's capabilities.
+This directory contains built-in skills that extend krolik's capabilities.
 
 ## Skill Format
 

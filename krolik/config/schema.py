@@ -141,5 +141,5 @@ class Config(BaseSettings):
         return None
     
     class Config:
-        env_prefix = "NANOBOT_"
+        env_prefix = "KROLIK_"
         env_nested_delimiter = "__"

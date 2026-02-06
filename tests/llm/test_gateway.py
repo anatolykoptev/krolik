@@ -200,8 +200,10 @@ def test_create_gateway_from_env_no_keys():
     import os
     env_backup = {}
     keys_to_clear = [
-        "CLI_PROXY_API_KEY", "NANOBOT_PROVIDERS__OPENROUTER__API_KEY",
-        "NANOBOT_PROVIDERS__ANTHROPIC__API_KEY", "NANOBOT_PROVIDERS__GEMINI__API_KEY",
+        "CLI_PROXY_API_KEY",
+        "KROLIK_PROVIDERS__OPENROUTER__API_KEY", "NANOBOT_PROVIDERS__OPENROUTER__API_KEY",
+        "KROLIK_PROVIDERS__ANTHROPIC__API_KEY", "NANOBOT_PROVIDERS__ANTHROPIC__API_KEY",
+        "KROLIK_PROVIDERS__GEMINI__API_KEY", "NANOBOT_PROVIDERS__GEMINI__API_KEY",
     ]
     for k in keys_to_clear:
         env_backup[k] = os.environ.pop(k, None)

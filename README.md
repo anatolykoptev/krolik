@@ -18,9 +18,9 @@ A single-package AI assistant that combines:
 pip install -e .
 
 # Configure (at least one LLM provider key)
-export NANOBOT_PROVIDERS__GEMINI__API_KEY=your-key
+export KROLIK_PROVIDERS__GEMINI__API_KEY=your-key
 # Optional: Telegram
-export NANOBOT_CHANNELS__TELEGRAM__TOKEN=your-bot-token
+export KROLIK_CHANNELS__TELEGRAM__TOKEN=your-bot-token
 
 krolik gateway
 ```
@@ -48,7 +48,8 @@ krolik/
 
 ## Configuration
 
-Config: `~/.krolik/config.json` or env vars with `NANOBOT_` prefix.
+Config: `~/.krolik/config.json` or env vars with `KROLIK_` prefix.
+Legacy `NANOBOT_` prefix is still supported for backward compatibility.
 API keys: `~/.krolik/.env`
 
 Default model: `google/gemini-3-flash-preview`

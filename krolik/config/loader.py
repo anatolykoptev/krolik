@@ -99,12 +99,21 @@ def load_env_file(env_path: Path | None = None) -> dict[str, str]:
     return env_vars
 
 
-def _flatten_dict_to_env(data: dict, prefix: str = "NANOBOT_") -> dict[str, str]:
+def _migrate_legacy_env_vars() -> None:
+    """Copy NANOBOT_* env vars to KROLIK_* if not already set (backward compat)."""
+    for key, value in list(os.environ.items()):
+        if key.startswith("NANOBOT_") and not key.startswith("NANOBOT_TMUX_"):
+            new_key = "KROLIK_" + key[len("NANOBOT_"):]
+            if new_key not in os.environ:
+                os.environ[new_key] = value
+
+
+def _flatten_dict_to_env(data: dict, prefix: str = "KROLIK_") -> dict[str, str]:
     """
-    Flatten nested dict to NANOBOT__-style env vars.
+    Flatten nested dict to KROLIK__-style env vars.
     
     E.g. {"providers": {"openrouter": {"api_key": "X"}}}
-    -> {"NANOBOT_PROVIDERS__OPENROUTER__API_KEY": "X"}
+    -> {"KROLIK_PROVIDERS__OPENROUTER__API_KEY": "X"}
     """
     result = {}
     
@@ -141,6 +150,9 @@ def load_config(config_path: Path | None = None, env_path: Path | None = None) -
     Returns:
         Loaded configuration object.
     """
+    # Step 0: Migrate legacy NANOBOT_* env vars to KROLIK_*
+    _migrate_legacy_env_vars()
+    
     # Step 1: Load config.json as lowest-priority defaults
     path = config_path or get_config_path()
     if path.exists():

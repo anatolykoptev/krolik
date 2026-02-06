@@ -253,12 +253,15 @@ class TestDiscoverModelsTool:
     @pytest.mark.asyncio
     async def test_no_api_key_error(self):
         import os
-        env_backup = os.environ.pop("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", None)
+        env_backup_new = os.environ.pop("KROLIK_PROVIDERS__OPENROUTER__API_KEY", None)
+        env_backup_old = os.environ.pop("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", None)
         try:
             tool = DiscoverModelsTool()
             result = await tool.execute()
             assert not result.success
             assert "API_KEY" in result.error
         finally:
-            if env_backup:
-                os.environ["NANOBOT_PROVIDERS__OPENROUTER__API_KEY"] = env_backup
+            if env_backup_new:
+                os.environ["KROLIK_PROVIDERS__OPENROUTER__API_KEY"] = env_backup_new
+            if env_backup_old:
+                os.environ["NANOBOT_PROVIDERS__OPENROUTER__API_KEY"] = env_backup_old

@@ -22,7 +22,3 @@ def krolik_path(project_path):
     return project_path / "krolik"
 
 
-@pytest.fixture(scope="session")
-def nanobot_path(project_path):
-    """Return the nanobot package path."""
-    return project_path / "nanobot"

@@ -383,7 +383,7 @@ Fetches the latest model list with pricing, classifies them into tiers
 (free/cheap/standard/premium), and saves to local cache.
 
 Run this periodically (daily) or when you need access to new models.
-Requires NANOBOT_PROVIDERS__OPENROUTER__API_KEY in environment.
+Requires KROLIK_PROVIDERS__OPENROUTER__API_KEY in environment.
 """
 
     parameters = {
@@ -400,11 +400,12 @@ Requires NANOBOT_PROVIDERS__OPENROUTER__API_KEY in environment.
 
     async def execute(self, max_cost: float = 20.0) -> ToolResult:
         try:
-            api_key = os.environ.get("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", "")
+            api_key = os.environ.get("KROLIK_PROVIDERS__OPENROUTER__API_KEY",
+                        os.environ.get("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", ""))
             if not api_key:
                 return ToolResult(
                     success=False,
-                    error="NANOBOT_PROVIDERS__OPENROUTER__API_KEY not set. "
+                    error="KROLIK_PROVIDERS__OPENROUTER__API_KEY not set. "
                           "Add it to .env to enable model discovery.",
                 )
 

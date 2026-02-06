@@ -432,9 +432,9 @@ def create_gateway_from_env() -> LLMGateway:
 
     Reads:
         CLI_PROXY_API_KEY / CLI_PROXY_API_URL → cliproxy provider
-        NANOBOT_PROVIDERS__OPENROUTER__API_KEY → openrouter provider
-        NANOBOT_PROVIDERS__ANTHROPIC__API_KEY → anthropic provider
-        NANOBOT_PROVIDERS__GEMINI__API_KEY → gemini provider
+        KROLIK_PROVIDERS__OPENROUTER__API_KEY → openrouter provider
+        KROLIK_PROVIDERS__ANTHROPIC__API_KEY → anthropic provider
+        KROLIK_PROVIDERS__GEMINI__API_KEY → gemini provider
     """
     import os
 
@@ -453,7 +453,8 @@ def create_gateway_from_env() -> LLMGateway:
         )
 
     # OpenRouter
-    or_key = os.environ.get("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", "")
+    or_key = os.environ.get("KROLIK_PROVIDERS__OPENROUTER__API_KEY",
+              os.environ.get("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", ""))
     if or_key:
         gw.add_provider(
             "openrouter",
@@ -464,7 +465,8 @@ def create_gateway_from_env() -> LLMGateway:
         )
 
     # Anthropic (via OpenAI-compatible endpoint)
-    ant_key = os.environ.get("NANOBOT_PROVIDERS__ANTHROPIC__API_KEY", "")
+    ant_key = os.environ.get("KROLIK_PROVIDERS__ANTHROPIC__API_KEY",
+               os.environ.get("NANOBOT_PROVIDERS__ANTHROPIC__API_KEY", ""))
     if ant_key:
         gw.add_provider(
             "anthropic",
@@ -476,7 +478,8 @@ def create_gateway_from_env() -> LLMGateway:
         )
 
     # Gemini (via OpenAI-compatible endpoint)
-    gemini_key = os.environ.get("NANOBOT_PROVIDERS__GEMINI__API_KEY", "")
+    gemini_key = os.environ.get("KROLIK_PROVIDERS__GEMINI__API_KEY",
+                  os.environ.get("NANOBOT_PROVIDERS__GEMINI__API_KEY", ""))
     if gemini_key:
         gw.add_provider(
             "gemini",
