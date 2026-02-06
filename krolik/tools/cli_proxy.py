@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 from loguru import logger
 
-from nanobot.agent.tools.base import Tool, ToolResult
+from krolik.agent.tools.base import Tool, ToolResult
 
 
 class CLIProxyTool(Tool):

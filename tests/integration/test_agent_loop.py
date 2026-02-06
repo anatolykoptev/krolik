@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import tempfile
 import shutil
 
-from nanobot.agent.loop import AgentLoop
-from nanobot.bus.queue import MessageBus
-from nanobot.providers.base import LLMProvider
+from krolik.agent.loop import AgentLoop
+from krolik.bus.queue import MessageBus
+from krolik.providers.base import LLMProvider
 
 
 @pytest.fixture
@@ -137,7 +137,7 @@ def test_agent_loop_get_mcp_status(temp_workspace, mock_bus, mock_provider):
 @pytest.mark.asyncio
 async def test_agent_loop_process_message_with_memory(temp_workspace, mock_bus, mock_provider):
     """Test message processing with memory integration."""
-    from nanobot.bus.events import InboundMessage
+    from krolik.bus.events import InboundMessage
     
     loop = AgentLoop(
         bus=mock_bus,
@@ -166,7 +166,7 @@ async def test_agent_loop_process_message_with_memory(temp_workspace, mock_bus, 
 @pytest.mark.asyncio
 async def test_agent_loop_proactive_suggestion(temp_workspace, mock_bus, mock_provider):
     """Test proactive suggestion integration."""
-    from nanobot.bus.events import InboundMessage
+    from krolik.bus.events import InboundMessage
     
     loop = AgentLoop(
         bus=mock_bus,

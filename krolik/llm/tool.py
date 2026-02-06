@@ -14,7 +14,7 @@ from typing import Any, Optional
 
 from loguru import logger
 
-from nanobot.agent.tools.base import Tool, ToolResult
+from krolik.agent.tools.base import Tool, ToolResult
 from krolik.llm.gateway import LLMGateway, LLMGatewayError
 from krolik.llm.models import MODELS, Capability, Tier
 from krolik.llm.router import ModelRouter, RouteResult

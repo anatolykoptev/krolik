@@ -3,7 +3,7 @@
 from krolik.mcp.client import MCPClient, MCPManager, create_mcp_manager
 from krolik.mcp.config import MCPConfig, MCPServerConfig
 
-# Lazy imports to avoid circular dependency with nanobot.agent.loop
+# Lazy imports to avoid circular dependency with krolik.agent.loop
 def __getattr__(name):
     if name in ("MCPTool", "MCPProxyTool", "MCPListTool", "register_mcp_tools"):
         from krolik.mcp import tools as _tools

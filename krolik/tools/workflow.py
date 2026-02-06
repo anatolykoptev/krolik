@@ -6,7 +6,7 @@ from typing import Any
 
 from loguru import logger
 
-from nanobot.agent.tools.base import Tool, ToolResult
+from krolik.agent.tools.base import Tool, ToolResult
 
 
 class CreateWorkflowTool(Tool):

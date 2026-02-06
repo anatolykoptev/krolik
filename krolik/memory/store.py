@@ -8,7 +8,7 @@ from typing import Any, Optional
 from loguru import logger
 
 from krolik.memory.client import MemUClient
-from nanobot.utils.helpers import ensure_dir, today_date
+from krolik.utils.helpers import ensure_dir, today_date
 
 
 class EnhancedMemoryStore:
@@ -16,7 +16,7 @@ class EnhancedMemoryStore:
     Enhanced memory system with memU integration.
     
     Uses memU for vector-based semantic memory when available,
-    falls back to file-based storage (original nanobot behavior).
+    falls back to file-based storage (original file-based behavior).
     """
     
     def __init__(

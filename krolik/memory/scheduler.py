@@ -1,6 +1,6 @@
 """Proactive scheduler for memory-based actions.
 
-Integrates with nanobot's cron system to provide:
+Integrates with krolik's cron system to provide:
 - Daily memory digest
 - Reminder checking
 - Proactive suggestions based on stored memories
@@ -22,7 +22,7 @@ class ProactiveMemoryScheduler:
     """
     Scheduler for proactive memory-based actions.
     
-    Runs as part of nanobot's cron system.
+    Runs as part of krolik's cron system.
     """
     
     def __init__(
@@ -196,13 +196,13 @@ class ProactiveMemoryScheduler:
         return results
 
 
-# Factory for creating scheduler with nanobot's send mechanism
+# Factory for creating scheduler with krolik's send mechanism
 async def create_memory_scheduler(
     workspace: Path,
     send_callback: Callable[[str, str, str], Any],
     memu_url: str = "http://localhost:8000"
 ) -> ProactiveMemoryScheduler:
-    """Create scheduler integrated with nanobot."""
+    """Create scheduler integrated with krolik."""
     
     from krolik.memory.config import MemoryConfig
     

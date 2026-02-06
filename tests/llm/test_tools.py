@@ -7,7 +7,7 @@ from krolik.llm.gateway import LLMGateway, GatewayResponse, ProviderEndpoint, LL
 from krolik.llm.router import ModelRouter
 from krolik.llm.models import MODELS, Capability, Tier
 from krolik.llm.tool import LLMCallTool, CodingAgentTool, ListModelsTool, DiscoverModelsTool
-from nanobot.agent.tools.base import ToolResult
+from krolik.agent.tools.base import ToolResult
 
 
 @pytest.fixture

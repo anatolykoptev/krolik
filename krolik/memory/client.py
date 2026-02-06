@@ -1,20 +1,46 @@
-"""MemU HTTP client for memory operations."""
+"""MemU client — tries direct Python import first, HTTP fallback second."""
 
 import httpx
 from typing import Any, Optional
 from loguru import logger
 
 
+def _try_import_memu():
+    """Try to import memu-py package directly (optional dependency)."""
+    try:
+        from memu.app.service import MemUService
+        return MemUService
+    except ImportError:
+        return None
+
+
 class MemUClient:
-    """HTTP client for memU memory service."""
+    """Client for memU memory service.
+    
+    Strategy:
+    1. If memu-py is installed, use direct Python API (no HTTP overhead)
+    2. Otherwise, fall back to HTTP client against memU service
+    """
     
     def __init__(self, base_url: str = "http://localhost:8000", api_key: Optional[str] = None):
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self._client = httpx.AsyncClient(timeout=30.0)
         
+        # Try direct import
+        self._service_cls = _try_import_memu()
+        self._service = None
+        if self._service_cls:
+            logger.info("memU: using direct Python API (memu-py installed)")
+        else:
+            logger.debug("memU: using HTTP client (memu-py not installed)")
+        
     async def health_check(self) -> bool:
         """Check if memU service is available."""
+        # Direct mode: always available if importable
+        if self._service_cls:
+            return True
+        
         try:
             response = await self._client.get(f"{self.base_url}/health")
             return response.status_code == 200

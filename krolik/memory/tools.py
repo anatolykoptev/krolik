@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from loguru import logger
 
-from nanobot.agent.tools.base import Tool, ToolResult
+from krolik.agent.tools.base import Tool, ToolResult
 from krolik.memory.store import EnhancedMemoryStore
 
 

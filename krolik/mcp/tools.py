@@ -1,17 +1,17 @@
-"""MCP tool wrapper for nanobot's tool registry."""
+"""MCP tool wrapper for krolik's tool registry."""
 
 import json
 from typing import Any, Optional
 
 from loguru import logger
 
-from nanobot.agent.tools.base import Tool, ToolResult
+from krolik.agent.tools.base import Tool, ToolResult
 from krolik.mcp.client import MCPManager
 
 
 class MCPTool(Tool):
     """
-    Wrapper for MCP tools to work with nanobot's tool registry.
+    Wrapper for MCP tools to work with krolik's tool registry.
     
     Each MCPTool represents one tool from an MCP server.
     """
@@ -194,7 +194,7 @@ def register_mcp_tools(
     register_individual: bool = True
 ) -> None:
     """
-    Register MCP tools with nanobot's tool registry.
+    Register MCP tools with krolik's tool registry.
     
     Args:
         tool_registry: The ToolRegistry to register with

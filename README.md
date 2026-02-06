@@ -1,55 +1,57 @@
 # Krolik 🐰
 
-Proactive AI bot with memU memory integration — a hard-fork from nanobot.
-
-> Based on [nanobot](https://github.com/HKUDS/nanobot), an ultra-lightweight personal AI assistant.
+Proactive AI bot with memU memory and dynamic LLM routing.
 
 ## What's Krolik?
 
-Krolik combines:
-- **nanobot** — proactive cron-based scheduling, skills system, multi-channel delivery
-- **memU** — advanced vector-based long-term memory with intent-aware retrieval
-
-The result: a bot that not only responds to you, but proactively suggests actions based on your history, preferences, and goals.
+A single-package AI assistant that combines:
+- **Agent Loop** — tool-calling LLM agent with subagent spawning
+- **LLM Gateway** — async multi-provider gateway with dynamic model discovery from OpenRouter API
+- **Smart Router** — 5-tier (free/cheap/standard/premium/research) task routing with bilingual EN+RU scoring
+- **memU Memory** — vector-based long-term memory with intent-aware retrieval
+- **Multi-Channel** — Telegram, WhatsApp, Feishu delivery
+- **Proactive Scheduling** — cron-based jobs, heartbeat, memory-driven suggestions
 
 ## Quick Start
 
 ```bash
-# Install
 pip install -e .
 
-# Configure
-export NANOBOT_PROVIDERS__OPENROUTER__API_KEY=your-key
+# Configure (at least one LLM provider key)
+export NANOBOT_PROVIDERS__GEMINI__API_KEY=your-key
+# Optional: Telegram
 export NANOBOT_CHANNELS__TELEGRAM__TOKEN=your-bot-token
 
-# Run
-krolik start
+krolik gateway
 ```
 
-## Features
-
-- 🔮 **Proactive Scheduling** — Cron-based jobs that initiate conversations
-- 🧠 **Semantic Memory** — memU-powered long-term memory with vector search
-- 🎯 **Intent-Aware** — Pre-retrieval decisions for smart context fetching
-- 🛠️ **Skills System** — Extensible via SKILL.md files
-- 📱 **Multi-Channel** — Telegram, WhatsApp, Feishu support
-
-## Architecture
+## Project Structure
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                      Krolik                         │
-├─────────────────────────────────────────────────────┤
-│  ┌──────────┐  ┌──────────┐  ┌───────────────────┐  │
-│  │   Cron   │  │  Agent   │  │  memU Memory      │  │
-│  │  Service │──│  Loop    │──│  • memorize()     │  │
-│  └──────────┘  └──────────┘  │  • retrieve()     │  │
-└─────────────────────────────────────────────────────┘
+krolik/
+├── agent/       # Core agent loop, context builder, skills, subagents
+├── bus/         # Async message bus (inbound/outbound queues)
+├── channels/    # Telegram, WhatsApp, Feishu integrations
+├── cli/         # Typer CLI commands
+├── config/      # Pydantic config schema + loader
+├── cron/        # Scheduled task service
+├── heartbeat/   # Periodic agent wake-up
+├── llm/         # LLM gateway, dynamic model registry, task router
+├── mcp/         # Model Context Protocol client
+├── memory/      # memU-integrated memory (store, intent-aware, proactive)
+├── providers/   # LiteLLM multi-provider adapter
+├── session/     # Conversation history
+├── skills/      # Bundled skills (github, weather, tmux, etc.)
+├── tools/       # All agent tools (filesystem, shell, web, CLI proxy, workflow)
+└── utils/       # Helpers
 ```
 
-## Development
+## Configuration
 
-See [NANOBOT_README.md](NANOBOT_README.md) for original nanobot documentation.
+Config: `~/.krolik/config.json` or env vars with `NANOBOT_` prefix.
+API keys: `~/.krolik/.env`
+
+Default model: `google/gemini-3-flash-preview`
 
 ## License
 

@@ -1,6 +1,6 @@
 """Memory-based cron jobs for proactive bot behavior.
 
-These jobs are registered with nanobot's cron system.
+These jobs are registered with krolik's cron system.
 """
 
 import asyncio
@@ -23,7 +23,7 @@ async def memory_daily_digest_job(
     Schedule: 0 9 * * * (9 AM daily)
     """
     async def send_message(ch: str, msg: str, recipient: str):
-        # This will be injected by nanobot's cron runner
+        # This will be injected by krolik's cron runner
         # For now, return the message for logging
         logger.info(f"[DAILY_DIGEST] Would send to {ch}:{recipient}: {msg[:100]}...")
     
