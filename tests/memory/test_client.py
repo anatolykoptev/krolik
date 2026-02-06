@@ -8,15 +8,19 @@ from krolik.memory.client import MemUClient
 
 
 @pytest.fixture
-def memu_client():
-    """Create a MemUClient instance for testing."""
-    return MemUClient(base_url="http://localhost:8000", api_key="test-key")
+def memu_client(tmp_path):
+    """Create a MemUClient in HTTP-only mode (embedded service disabled)."""
+    client = MemUClient(base_url="http://localhost:8000", api_key="test-key", data_dir=tmp_path, pg_dsn="postgresql://fake:fake@localhost/fake")
+    # Force HTTP-only mode: skip embedded service init
+    client._service_attempted = True
+    client._service = None
+    return client
 
 
 @pytest.mark.asyncio
 async def test_memu_client_health_check_success(memu_client):
-    """Test health check when memU is available."""
-    with patch.object(memu_client._client, 'get') as mock_get:
+    """Test health check when memU HTTP service is available."""
+    with patch.object(memu_client._http, 'get') as mock_get:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_get.return_value = mock_response
@@ -30,7 +34,7 @@ async def test_memu_client_health_check_success(memu_client):
 @pytest.mark.asyncio
 async def test_memu_client_health_check_failure(memu_client):
     """Test health check when memU is unavailable."""
-    with patch.object(memu_client._client, 'get') as mock_get:
+    with patch.object(memu_client._http, 'get') as mock_get:
         mock_get.side_effect = Exception("Connection refused")
         
         result = await memu_client.health_check()
@@ -40,13 +44,13 @@ async def test_memu_client_health_check_failure(memu_client):
 
 @pytest.mark.asyncio
 async def test_memu_client_memorize_success(memu_client):
-    """Test successful memory storage."""
+    """Test successful memory storage via HTTP."""
     messages = [
         {"role": "user", "content": "Hello"},
         {"role": "assistant", "content": "Hi there"}
     ]
     
-    with patch.object(memu_client._client, 'post') as mock_post:
+    with patch.object(memu_client._http, 'post') as mock_post:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_post.return_value = mock_response
@@ -64,7 +68,7 @@ async def test_memu_client_memorize_failure(memu_client):
     """Test memory storage failure handling."""
     messages = [{"role": "user", "content": "Test"}]
     
-    with patch.object(memu_client._client, 'post') as mock_post:
+    with patch.object(memu_client._http, 'post') as mock_post:
         mock_response = MagicMock()
         mock_response.status_code = 500
         mock_response.text = "Server error"
@@ -77,8 +81,8 @@ async def test_memu_client_memorize_failure(memu_client):
 
 @pytest.mark.asyncio
 async def test_memu_client_retrieve_success(memu_client):
-    """Test successful memory retrieval."""
-    with patch.object(memu_client._client, 'post') as mock_post:
+    """Test successful memory retrieval via HTTP."""
+    with patch.object(memu_client._http, 'post') as mock_post:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
@@ -98,7 +102,7 @@ async def test_memu_client_retrieve_success(memu_client):
 @pytest.mark.asyncio
 async def test_memu_client_retrieve_empty(memu_client):
     """Test retrieval with no results."""
-    with patch.object(memu_client._client, 'post') as mock_post:
+    with patch.object(memu_client._http, 'post') as mock_post:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"results": []}
@@ -110,11 +114,13 @@ async def test_memu_client_retrieve_empty(memu_client):
 
 
 @pytest.mark.asyncio
-async def test_memu_client_with_api_key():
-    """Test that API key is included in headers."""
-    client = MemUClient(base_url="http://localhost:8000", api_key="secret-key")
+async def test_memu_client_with_api_key(tmp_path):
+    """Test that API key is included in HTTP headers."""
+    client = MemUClient(base_url="http://localhost:8000", api_key="secret-key", data_dir=tmp_path, pg_dsn="postgresql://fake:fake@localhost/fake")
+    client._service_attempted = True
+    client._service = None
     
-    with patch.object(client._client, 'post') as mock_post:
+    with patch.object(client._http, 'post') as mock_post:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"results": []}

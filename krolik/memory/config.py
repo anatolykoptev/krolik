@@ -76,6 +76,9 @@ class MemoryConfig(BaseModel):
     memu_url: str = "http://localhost:8000"
     memu_api_key: Optional[str] = None
     
+    # PostgreSQL DSN for persistent memory (pgvector)
+    pg_dsn: Optional[str] = None
+    
     # Fallback settings
     file_fallback: bool = True
     

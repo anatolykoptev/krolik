@@ -23,14 +23,20 @@ class EnhancedMemoryStore:
         self, 
         workspace: Path,
         memu_url: str = "http://localhost:8000",
-        memu_api_key: Optional[str] = None
+        memu_api_key: Optional[str] = None,
+        pg_dsn: Optional[str] = None,
     ):
         self.workspace = workspace
         self.memory_dir = ensure_dir(workspace / "memory")
         self.memory_file = self.memory_dir / "MEMORY.md"
         
-        # memU client (may be None if unavailable)
-        self._memu = MemUClient(base_url=memu_url, api_key=memu_api_key)
+        # memU client — PostgreSQL+pgvector → HTTP → file fallback
+        self._memu = MemUClient(
+            base_url=memu_url,
+            api_key=memu_api_key,
+            data_dir=self.memory_dir / "memu_data",
+            pg_dsn=pg_dsn,
+        )
         self._memu_available: Optional[bool] = None
         
     async def _check_memu(self) -> bool:
