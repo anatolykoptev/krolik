@@ -15,8 +15,8 @@ from krolik.llm.models import (
     Tier,
     Capability,
 )
-from krolik.llm.router import ModelRouter, RouteResult, RouterError
-from krolik.llm.tool import LLMCallTool, CodingAgentTool, ListModelsToolTool
+from krolik.llm.router import ModelRouter, RouteResult, RouterError, OutcomeRecord
+from krolik.llm.tool import LLMCallTool, CodingAgentTool, ListModelsTool, DiscoverModelsTool
 
 __all__ = [
     "LLMGateway",
@@ -33,7 +33,9 @@ __all__ = [
     "ModelRouter",
     "RouteResult",
     "RouterError",
+    "OutcomeRecord",
     "LLMCallTool",
     "CodingAgentTool",
-    "ListModelsToolTool",
+    "ListModelsTool",
+    "DiscoverModelsTool",
 ]

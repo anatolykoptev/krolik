@@ -28,7 +28,7 @@ from krolik.tools.workflow import CreateWorkflowTool, ListWorkflowsTool, RunWork
 from krolik.tools.cli_proxy import CLIProxyTool, AgentConnectTool
 from krolik.llm.gateway import create_gateway_from_env
 from krolik.llm.router import ModelRouter
-from krolik.llm.tool import LLMCallTool, CodingAgentTool, ListModelsToolTool
+from krolik.llm.tool import LLMCallTool, CodingAgentTool, ListModelsTool, DiscoverModelsTool
 
 
 class AgentLoop:
@@ -134,7 +134,8 @@ class AgentLoop:
         )
         self.tools.register(LLMCallTool(self.llm_gateway, self.model_router))
         self.tools.register(CodingAgentTool(self.llm_gateway, self.model_router))
-        self.tools.register(ListModelsToolTool(self.llm_gateway))
+        self.tools.register(ListModelsTool(self.llm_gateway, self.model_router))
+        self.tools.register(DiscoverModelsTool())
     
     async def run(self) -> None:
         """Run the agent loop, processing messages from the bus."""

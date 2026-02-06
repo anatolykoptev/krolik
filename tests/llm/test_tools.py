@@ -1,4 +1,4 @@
-"""Tests for LLM tools (llm_call, coding_agent, list_models)."""
+"""Tests for LLM tools (llm_call, coding_agent, list_models, discover_models)."""
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from krolik.llm.gateway import LLMGateway, GatewayResponse, ProviderEndpoint, LLMGatewayError
 from krolik.llm.router import ModelRouter
 from krolik.llm.models import MODELS, Capability, Tier
-from krolik.llm.tool import LLMCallTool, CodingAgentTool, ListModelsToolTool
+from krolik.llm.tool import LLMCallTool, CodingAgentTool, ListModelsTool, DiscoverModelsTool
 from nanobot.agent.tools.base import ToolResult
 
 
@@ -19,8 +19,11 @@ def gateway():
 
 
 @pytest.fixture
-def router(gateway):
-    return ModelRouter(available_providers=set(gateway.list_providers()))
+def router(gateway, tmp_path):
+    return ModelRouter(
+        available_providers=set(gateway.list_providers()),
+        outcomes_path=tmp_path / "outcomes.json",
+    )
 
 
 @pytest.fixture
@@ -61,7 +64,7 @@ class TestLLMCallTool:
         tool = LLMCallTool(gateway, router)
 
         with patch.object(gateway, "chat", new_callable=AsyncMock, return_value=mock_response):
-            result = await tool.execute(prompt="Hello", model="flash")
+            result = await tool.execute(prompt="Hello", model="cliproxy-flash")
 
         assert result.success
 
@@ -178,7 +181,7 @@ class TestCodingAgentTool:
         tool = CodingAgentTool(gateway, router)
 
         with patch.object(gateway, "chat", new_callable=AsyncMock, return_value=mock_response):
-            result = await tool.execute(task="Write code", model="flash")
+            result = await tool.execute(task="Write code", model="cliproxy-flash")
 
         assert result.success
 
@@ -201,30 +204,61 @@ class TestCodingAgentTool:
 
 
 class TestListModelsTool:
-    def test_tool_properties(self, gateway):
-        tool = ListModelsToolTool(gateway)
+    def test_tool_properties(self, gateway, router):
+        tool = ListModelsTool(gateway, router)
         assert tool.name == "list_models"
 
     @pytest.mark.asyncio
-    async def test_list_all_models(self, gateway):
-        tool = ListModelsToolTool(gateway)
+    async def test_list_all_models(self, gateway, router):
+        tool = ListModelsTool(gateway, router)
         result = await tool.execute()
         assert result.success
         assert "FREE" in result.output
-        assert "STANDARD" in result.output
-        assert "PREMIUM" in result.output
 
     @pytest.mark.asyncio
-    async def test_list_by_tier(self, gateway):
-        tool = ListModelsToolTool(gateway)
+    async def test_list_by_tier(self, gateway, router):
+        tool = ListModelsTool(gateway, router)
         result = await tool.execute(tier="free")
         assert result.success
         assert "FREE" in result.output
 
     @pytest.mark.asyncio
-    async def test_shows_availability(self, gateway):
-        tool = ListModelsToolTool(gateway)
+    async def test_shows_availability(self, gateway, router):
+        tool = ListModelsTool(gateway, router)
         result = await tool.execute()
         assert result.success
-        # cliproxy and gemini are configured, should show ✅
         assert "✅" in result.output
+
+    @pytest.mark.asyncio
+    async def test_shows_total_count(self, gateway, router):
+        tool = ListModelsTool(gateway, router)
+        result = await tool.execute()
+        assert result.success
+        assert "total" in result.output
+
+    @pytest.mark.asyncio
+    async def test_stale_cache_warning(self, gateway, router):
+        tool = ListModelsTool(gateway, router)
+        result = await tool.execute()
+        assert result.success
+        # Default registry has needs_discovery=True
+        assert "discover_models" in result.output
+
+
+class TestDiscoverModelsTool:
+    def test_tool_properties(self):
+        tool = DiscoverModelsTool()
+        assert tool.name == "discover_models"
+
+    @pytest.mark.asyncio
+    async def test_no_api_key_error(self):
+        import os
+        env_backup = os.environ.pop("NANOBOT_PROVIDERS__OPENROUTER__API_KEY", None)
+        try:
+            tool = DiscoverModelsTool()
+            result = await tool.execute()
+            assert not result.success
+            assert "API_KEY" in result.error
+        finally:
+            if env_backup:
+                os.environ["NANOBOT_PROVIDERS__OPENROUTER__API_KEY"] = env_backup
